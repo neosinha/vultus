@@ -9,7 +9,7 @@ import argparse
 import logging, json
 import datetime, time, os, sys, shutil
 import cherrypy as HttpServer
-from AgenderCore import Agender
+from pymongo import MongoClient
 
 
 class VultusAPI(object):
@@ -19,13 +19,12 @@ class VultusAPI(object):
 
     staticdir = None
 
-    def __init__(self, staticdir=None, cascPath=None):
+    def __init__(self, staticdir=None, dbhost=None):
         """
-        Constructor
+        Constructor and initiallizers
         :param staticdir:
-        :param cascPath:
+        :param dbhost:
         """
-
         self.staticdir = os.path.join(os.getcwd(), 'ui_www')
         if staticdir:
             self.staticdir = staticdir
@@ -37,14 +36,19 @@ class VultusAPI(object):
         if uploaddir: 
             self.uploaddir = uploaddir
 
-        # Initiallize FaceDetectCore
-        cascDir = os.path.abspath(os.getcwd())
-        if cascPath:
-            cascDir = cascPath
+        # DB Port Addresses
+        self.dbhost = '127.0.0.1'
+        self.dbport = 27017
+        if dbhost:
+            dbhostarr = dbhost.split(":")
+            self.dbhost = dbhostarr[0]
+            if dbhostarr[1]:
+                self.dbport = int(dbhostarr[1])
+        logging.info("MongoDB Client: {} : {}".format(self.dbhost, self.dbport))
+        client = MongoClient(self.dbhost, self.dbport)
 
-        logging.info('Cascade path is %s' % cascPath)
-        self.pxlcore = Agender(cascadePath=cascPath, odir=self.staticdir)
-            
+
+
     @HttpServer.expose
     def index(self):
         """
@@ -94,20 +98,6 @@ class VultusAPI(object):
             return json.dumps(out)
         else:
             return "Parameter: \"theFile\" was not defined"
-
-    @HttpServer.expose
-    def pixelatefaces(self, ifile):
-        """
-
-        :return:
-        """
-        print("Checking upfile:  %s" % (ifile))
-        rawimg = os.path.join(self.uploaddir, ifile)
-
-        pxlfaces = self.pxlcore.predict_agender(imgpath=rawimg,
-                                                odir=self.staticdir)
-
-        return json.dumps(pxlfaces)
 
     def epoch(self):
         """
@@ -184,8 +174,7 @@ if __name__ == '__main__':
         'tools.staticdir.dir': staticwww}
             }
 
-    HttpServer.quickstart(VultusAPI(staticdir=staticwww,
-                                    cascPath=cascPath),
+    HttpServer.quickstart(VultusAPI(staticdir=staticwww),
                             '/', conf)
 
 

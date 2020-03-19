@@ -1,0 +1,303 @@
+@media (min-width: 768px) {
+    .form-inline .radio input[type="radio"], 
+    .form-inline .checkbox input[type="checkbox"] {
+        float: left;
+        margin-right: 5px;
+    }
+}
+
+#mainbody {
+    background-color : #EEE;
+}
+
+.checkbox input[type=checkbox], .checkbox-inline input[type=checkbox], 
+.radio input[type=radio], .radio-inline input[type=radio] {
+	/* position: relative; */
+	margin-top: -16px;
+	margin-left: -20px;
+
+}
+
+
+.brand {
+	font-family: 'Major Mono Display';
+	font-size: 32px; 
+	color: #FFFFFF;
+	text-align: center;
+	position: relative;
+	top: 25%;
+	
+}
+
+.brandtext {
+	font-family: 'Source Code Pro';
+	font-size: 32px;
+	color: #000;
+	text-align: center;
+	position: relative;
+	top: -20%;
+	left: 2%;
+
+}
+
+.clock {
+	color: #000;
+	text-align: center;
+	position: absolute;
+	
+	right: 10%;
+	top: 20%;
+	font-family: 'Inconsolata'; 
+	font-size: 24px; 
+}
+.logo-img {
+	position: relative;
+	max-width: 64px;
+    max-height: 64px;
+	/*background-color : #3F0098;*/
+}
+.logo-live {
+	position: relative;
+	max-width: 48px;
+    max-height: 48px;
+    top: -50%;
+	/*background-color : #3F0098;*/
+}
+
+.navbar {
+	margin-top: -1%;
+	margin-bottom: 20px;
+	background-color : #3F0098;
+	background-color : #EEE;
+	height : 72px;
+	width : 100%;
+}
+
+
+
+.cable {
+	position: relative; 
+	background-color : #3F0098;
+}
+
+
+
+.mainlogo{
+	font-family: 'Major Mono Display', 'cursive';
+	font-size: 48px; 
+	position: relative; 
+	top: -10%;
+}
+
+.maintab {
+	font-family: 'Source Code Pro', monospace;
+	font-size: 16px;	
+}
+
+.jumbotron {
+	font-family: 'Source Sans Pro';
+	/*background-color :  #deeaee;*/
+	/*background-color :  #f2e6ff;*/
+	background-color :  #FFFFFF;
+}
+
+
+.logwell {
+	position: relative; 
+	height : 320px;
+	overflow-y:auto;
+	font-family: 'Source Code Pro', monospace;
+	font-size: 16px;	
+}
+
+.imcenter {
+	display : block;
+	top: 50%;
+	/*position: relative;*/
+    /*left : 5%;
+    right: 5%;
+*/
+	margin-left: auto;
+	margin-top: auto;
+    margin-right: auto;
+    margin-bottom: auto;
+
+    width: 50%;
+	max-width: 480px;
+    max-height: 480px;
+
+}
+
+.imageblur {
+    filter: blur(5px);
+}
+
+.statscounter {
+	height: 60px;
+	width: 240px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+.glyphicon {
+    font-size: 24px;
+}
+
+.inplabel {
+	position: relative; 
+	/*padding-bottom: 20px;*/
+	margin-right: 1px;
+	
+	font-family: 'Source Code Pro', monospace;
+	font-size: 16px;	
+}
+
+.sliderlabel {
+	position: relative; 
+	left: 20px;
+	/*padding-bottom: 20px;*/
+	font-family: 'Source Code Pro', monospace;
+	font-size: 16px;	
+}
+
+.slider-handle.extcustom {
+	color: #3F0098;
+}
+
+.modal-dialog {
+	position: relative;
+	/*margin-left: 50%;*/
+	margin-top: 20% ;
+	opacity : 10%;
+}
+
+.speedselect {
+	position: relative; 
+	margin-top: 25px;
+	padding-right: 10px;
+	padding-left: 10px;
+}
+
+.fileUpload {
+    position: relative;
+    overflow: hidden;
+    margin: 10px;
+}
+.fileUpload input.upload {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    filter: alpha(opacity=0);
+}
+
+
+.image-preview-input {
+    position: relative;
+	overflow: hidden;
+	margin: 0px;
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+
+.image-preview-input input[type=file] {
+	position: absolute;
+	top: 0;
+	right: 0;
+	margin: 0;
+	padding: 0;
+	font-size: 20px;
+	cursor: pointer;
+	opacity: 0;
+	filter: alpha(opacity=0);
+}
+
+
+.image-preview-input-title {
+    margin-left:2px;
+}
+
+.custom-file-upload input[type="file"] {
+    display: none;
+}
+
+
+.custom-file-upload .custom-file-upload1 {
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+
+
+.progress {
+    position: relative;
+	height: 25px;
+}
+.progress > .progress-type {
+	position: absolute;
+	left: 0px;
+	font-weight: 800;
+	padding: 3px 30px 2px 10px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(25, 25, 25, 0.2);
+}
+.progress > .progress-completed {
+	position: absolute;
+	right: 0px;
+	font-weight: 800;
+	padding: 3px 10px 2px;
+}
+
+.social-box .box{
+    background: #FFF;
+    border-radius: 10px;
+    padding: 40px 10px;
+    margin: 20px 0px;
+    cursor: pointer;
+    transition: all 0.5s ease-out;
+}
+
+.social-box .box:hover{
+   box-shadow: 0 0 6px #4183D7;
+}
+
+.social-box .box .box-text{
+    margin:20px 0px;
+    font-size: 15px;
+    line-height: 30px;
+}
+
+.social-box .box .box-btn a{
+    text-decoration: none;
+    color: #4183D7;
+    font-size: 16px;
+}
+
+.fa{
+     color:#4183D7;
+}
+
+
+.card {
+  /* Add shadows to create the "card" effect */
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  transition: 0.3s;
+}
+
+/* On mouse-over, add a deeper shadow */
+.card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+
+/* Add some padding inside the card container */
+.container {
+  padding: 2px 16px;
+}
+
