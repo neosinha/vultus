@@ -2,15 +2,18 @@ import cv2
 import os, logging, sys, datetime, time
 import math
 from pyagender import PyAgender
+import paho.mqtt.client as mqtt
+import requests, json
+from threading import Thread
 
 
-class VultusCore(object):
+class VultusCore(Thread):
     '''
     VultusCore would build a classifier object which can called on multiple images
     '''
 
 
-    def __init__(self, cascadePath=None, odir=None):
+    def __init__(self, cascadePath=None, odir=None, msgserver=None):
         '''
         Constructor for PixelCore
         '''
@@ -30,6 +33,82 @@ class VultusCore(object):
         self.faceCascade = cv2.CascadeClassifier(self.cascPath)
         self.face_size = 32
         self.agender = PyAgender()
+
+        # MQTT Connections
+        # Intialize MQTT
+        self.mqttserver = 'mqtt.sinhamobility.com'
+        if msgserver:
+            self.mqttserver = msgserver
+        clientid = "ap{}".format(self.epoch())
+        logging.info('Connecting to MQTT Broker({}) with client-id {}'.format(self.mqttserver, clientid))
+        self.mqttc = mqtt.Client(clientid, clean_session=True,
+                                 transport="tcp",
+                                 protocol=mqtt.MQTTv311)
+        print("== {}".format(self.mqttc))
+        self.mqttc.username_pw_set("apiuser", "millionchamps")
+
+        self.mqttc.on_connect = self.on_connect
+        self.mqttc.on_message = self.on_message
+        self.mqttc.on_disconnect = self.on_disconnect
+        # TLS port is 8883, regular TCP is 1883
+        self.mqttc.connect("mqtt.sinhamobility.com", 1883, 60)
+        # MQTT Client Initialization
+        self.initmqtt()
+
+    def initmqtt(self):
+        """
+        Initialize MQTT settings
+          :return:
+       """
+        # MQTT Connections
+        clientid = "ap{}".format(self.epoch())
+        logging.info('Connecting to MQTT Broker({}) with client-id {}'.format(self.mqttserver, clientid))
+        self.mqttc = mqtt.Client(clientid, clean_session=True,
+                                 transport="tcp",
+                                 protocol=mqtt.MQTTv311)
+        print("== {}".format(self.mqttc))
+        self.mqttc.username_pw_set("apiuser", "millionchamps")
+        self.mqttc.on_connect = self.on_connect
+        self.mqttc.on_message = self.on_message
+        self.mqttc.on_disconnect = self.on_disconnect
+        # TLS port is 8883, regular TCP is 1883
+        self.mqttc.connect("mqtt.sinhamobility.com", 1883, 60)
+
+     # MQTT
+    def on_connect(self, client, userdata, flags, rc):
+        """
+        MQTT callback for on_connect
+        :return:
+        """
+        logging.info('Connection to MQTT Broker established with status {}'.format(rc))
+
+    # MQTT
+    def on_message(self, client, userdata, msg):
+        """
+        MQTT on_message callback
+          :param client:
+          :param userdata:
+          :param msg:
+          :return:
+        """
+        logging.info('MQTT RCVD: {}'.format(msg))
+
+    def on_disconnect(self, client, userdata, message):
+        print("Disconnected, trying to re-intiallize")
+        self.mqttc.disconnect()
+        self.initmqtt()
+
+
+    def getLocation(self):
+        """
+        Uses GeoIP.Net to get GeoLocation
+        :return:
+        """
+        send_url = 'https://ipinfo.io'
+        r = requests.get(send_url)
+        resp = r.text
+        logging.info("GeoLoc: {}".format(resp))
+        return resp
 
     def readGrayScaleImage(self, imgpath=None, frame=None):
         """
@@ -205,7 +284,7 @@ class VultusCore(object):
 
         return vidstats
 
-    def analyze_frame(self, iframe=None, label=True, vwriter=None):
+    def analyze_frame(self, iframe=None, label=True, vwriter=None, publish=True):
         """
         Analyzes a video frame and generates age/gender data for the frame.
         It also generates an annotated version of the frame
@@ -221,7 +300,7 @@ class VultusCore(object):
         agenderx = self.agender.detect_genders_ages(iframe)
         faces = []
         oframe = iframe.copy()
-
+        dbdata = []
         for face in agenderx:
             # print("Faces: {}, {} {} {}".format(face['left'], face['top'], face['width'], face['height']))
             age = int(math.ceil(face['age'] / 1.0))
@@ -230,6 +309,11 @@ class VultusCore(object):
                 gender = 'F'
             agex = '0-10'
             faces.append({'age': age, 'agex' : agex, 'gender': gender, 'agender': face['gender'],
+                          'left': face['left'], 'right': face['right'],
+                          'top': face['top'], 'bottom': face['bottom']
+                          })
+
+            dbdata.append({'age': age, 'agex' : agex, 'gender': gender,
                           'left': face['left'], 'right': face['right'],
                           'top': face['top'], 'bottom': face['bottom']
                           })
@@ -245,11 +329,11 @@ class VultusCore(object):
             if vwriter:
                 vwriter.write(oframe)
 
-        framedata = {'frame': oframe, 'agender': faces}
+        framedata = {'frame': oframe, 'agender': faces, 'dbdata' : dbdata}
 
         return framedata
 
-    def analyze_livevideo(self, camera=0, ofile=None, droprate=2):
+    def analyze_livevideo(self, camera=0, ofile=None, droprate=2, cameraid=None, location=None, publish=True):
         """
         Analyzes LiveVideo feeds unitl 'ESC' Key is pressed
         :param camera:
@@ -273,8 +357,20 @@ class VultusCore(object):
             # print("FrameNum: {}".format(fcount))
             if fcount % droprate == 0:
                 print(" Analyzing Frame: {}".format(fcount))
-                faceinfo = self.analyze_frame(iframe=frame, label=True)
+                faceinfo = self.analyze_frame(iframe=frame, label=True, publish=True)
                 cv2.imshow('Agender', faceinfo['frame'])
+                if publish:
+                    finfo = {}
+                    finfo['cameraid'] = cameraid
+                    finfo['location'] = location
+                    finfo['agender'] = faceinfo['dbdata']
+                    finfo['epoch'] = self.epoch()
+                    dtstr = str(datetime.datetime.now()).split('.')[0]
+                    dtdstr = dtstr.split(" ")
+                    finfo['datetime'] = {'date': dtdstr[0], 'time': dtdstr[1]}
+                    if len(faceinfo['dbdata']):
+                        print(json.dumps(finfo))
+                        self.mqttc.publish('vultus/camerastats', json.dumps(finfo) )
 
             fcount += 1
             if cv2.waitKey(5) == 27:  # ESC key press
@@ -298,20 +394,24 @@ if __name__ == '__main__':
     ag = VultusCore(cascadePath=capth)
     # ag.facedetectFrame(imgpath='/Users/navendusinha/Downloads/img002.jpg',
     #                   wwwbase=capth)
-    ag.process_frame(imgfile='/Users/navendusinha/Downloads/img002.jpg',
-                     statticdir=os.getcwd())
+    #ag.process_frame(imgfile='/Users/navendusinha/Downloads/img002.jpg',
+    #                 statticdir=os.getcwd())
 
-    ag.process_frame(imgfile='/Users/navendusinha/Downloads/brother-09.jpg',
-                     statticdir=os.getcwd())
+    #ag.process_frame(imgfile='/Users/navendusinha/Downloads/brother-09.jpg',
+    #                 statticdir=os.getcwd())
 
-    ag.process_frame(imgfile='/Users/navendusinha/Downloads/akshil-01.jpg',
-                     statticdir=os.getcwd())
+    #ag.process_frame(imgfile='/Users/navendusinha/Downloads/akshil-01.jpg',
+    #                 statticdir=os.getcwd())
 
-    ag.process_frame(imgfile='/Users/navendusinha/Downloads/akshil-02.jpg',
-                     statticdir=os.getcwd())
+    #ag.process_frame(imgfile='/Users/navendusinha/Downloads/akshil-02.jpg',
+    #                 statticdir=os.getcwd())
 
     st = ag.epoch()
-    ag.analyze_livevideo(droprate=3)
+    loc= ag.getLocation()
+    print("Location: {}".format(loc))
+    ag.analyze_livevideo(cameraid='001', location=ag.getLocation())
+
+    #ag.analyze_livevideo(droprate=3, cameraid='000', location=)
     # vstats = ag.analyze_video_file(vidfile='/Users/navendusinha/Downloads/IMG_6415.mp4')
     # vstats = ag.analyze_video_file(vidfile='/Users/navendusinha/Downloads/VID_20200110_193348.mp4')
     # vstats = ag.analyze_video_file(vidfile='/Users/navendusinha/Downloads/IMG_0209.mp4')

@@ -4,6 +4,7 @@ import math, ssl
 import cherrypy as HttpServelet
 from pymongo import MongoClient
 import paho.mqtt.client as mqtt
+import json
 
 
 class VultusBase(object):
@@ -73,7 +74,7 @@ class VultusBase(object):
         :return:
         """
         logging.info('Connection to MQTT Broker established with status {}'.format(rc))
-        self.mqttc.subscribe("vultus/stats")
+        self.mqttc.subscribe("vultus/camerastats")
 
     # MQTT
     def on_message(self, client, userdata, msg):
@@ -84,7 +85,10 @@ class VultusBase(object):
           :param msg:
           :return:
         """
-        logging.info('MQTT RCVD: {}'.format(msg))
+        logging.info('MQTT RCVD: {}'.format(msg.text))
+        dbobj = json.loads(msg.text)
+
+
 
     def on_disconnect(self, client, userdata, message):
         print("Disconnected, trying to re-intiallize")
@@ -116,6 +120,3 @@ if __name__ == '__main__':
     ag = VultusBase(staticdir=wwwbase)
     ag.mqttc.loop_forever()
 
-    # print("Processing time: %s second(s)" % int((en - st) / 1000))
-    # for vstat in vstats:
-    #    print(vstat)

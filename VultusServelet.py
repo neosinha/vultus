@@ -58,6 +58,22 @@ class VultusAPI(object):
 
         return open(os.path.join(self.staticdir, "index.html"))
 
+
+    @HttpServer.expose
+    def framestats(self, cameraid, location, videoid, framenum, stats):
+        """
+        Recieves framestats
+
+        :param cameraid:
+        :param location:
+        :param videoid:
+        :param framenum:
+        :param stats:
+        :return:
+        """
+        frameobj = {'cameraid' : cameraid, 'location' : location }
+
+
     @HttpServer.expose
     def imgupload(self, upfile):
         """
