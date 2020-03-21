@@ -86,7 +86,8 @@ class VultusBase(object):
         """
         dbobj = json.loads(msg.payload)
         logging.info("Payload: {}".format(dbobj))
-        self.dbcol.update(dbobj, dbobj, upsert=True)
+        upd = self.dbcol.update(dbobj, dbobj, upsert=True)
+        logging.info("Update: {}".format(upd))
 
     def on_disconnect(self, client, userdata, message):
         print("Disconnected, trying to re-intiallize")
