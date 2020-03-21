@@ -85,8 +85,11 @@ class VultusBase(object):
           :param msg:
           :return:
         """
-        logging.info('MQTT RCVD: {}'.format(msg.text))
-        dbobj = json.loads(msg.text)
+        logging.info('MQTT RCVD: {}'.format(msg.payload))
+        dbobj = json.loads(msg.payload)
+        upd = self.dbcol.update(dbobj, dbobj, upsert=True)
+
+
 
 
 
