@@ -27,7 +27,7 @@ class VultusBase(object):
         if dbaddress:
             dbarr = dbaddress.split(':')
             self.dbaddress = dbarr[0]
-            if len(dbarr[1]):
+            if len(dbarr[1]) > 1:
                 self.dbport = int(dbarr[1])
         logging.info('Connecting to MongoDB {}:{}'.format(self.dbaddress,
                                                            self.dbport))
