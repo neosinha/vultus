@@ -13,7 +13,7 @@ class VultusCore(Thread):
     '''
 
 
-    def __init__(self, cascadePath=None, odir=None, msgserver=None):
+    def __init__(self, cascadePath=None, odir=None, msgserver=None, msgtopic=None):
         '''
         Constructor for PixelCore
         '''
@@ -37,13 +37,20 @@ class VultusCore(Thread):
         # MQTT Connections
         # Intialize MQTT
         self.mqttserver = 'mqtt.sinhamobility.com'
+        self.msgtopic = 'camerastats'
+        if msgtopic:
+            self.msgtopic = str(msgtopic).strip()
+
         if msgserver:
             self.mqttserver = msgserver
         clientid = "ap{}".format(self.epoch())
         logging.info('Connecting to MQTT Broker({}) with client-id {}'.format(self.mqttserver, clientid))
+        logging.info('Subscribing to topic {}'.format(self.msgtopic))
+
         self.mqttc = mqtt.Client(clientid, clean_session=True,
                                  transport="tcp",
                                  protocol=mqtt.MQTTv311)
+
         print("== {}".format(self.mqttc))
         self.mqttc.username_pw_set("apiuser", "millionchamps")
 
@@ -106,7 +113,7 @@ class VultusCore(Thread):
         """
         send_url = 'https://ipinfo.io'
         r = requests.get(send_url)
-        resp = r.text
+        resp = json.loads(r.text)
         logging.info("GeoLoc: {}".format(resp))
         return resp
 
@@ -369,14 +376,27 @@ class VultusCore(Thread):
                     dtdstr = dtstr.split(" ")
                     finfo['datetime'] = {'date': dtdstr[0], 'time': dtdstr[1]}
                     if len(faceinfo['dbdata']):
-                        print(json.dumps(finfo))
-                        self.mqttc.publish('vultus/camerastats', json.dumps(finfo) )
+                        #print(json.dumps(finfo))
+                        self.publishstats(stats=finfo)
 
             fcount += 1
             if cv2.waitKey(5) == 27:  # ESC key press
                 livefeed = False
 
+    echotopic = False
+    def publishstats(self, topic=None, stats=None):
+        """
+        Handles publishing stats to database
+        :return:
+        """
+        ltopic = self.msgtopic
+        if topic:
+            ltopic = topic
+        if not self.echotopic:
+            self.echotopic = True
+            logging.info("Selecting MQTT topic {}".format(ltopic))
 
+        self.mqttc.publish(ltopic, json.dumps(stats))
 
     def epoch(self):
         """
@@ -390,16 +410,16 @@ class VultusCore(Thread):
 if __name__ == '__main__':
     print("hello .. ")
     capth = os.getcwd()
+    logpath = os.path.join(os.getcwd(), 'log', 'vultuscore.log')
+    logdir = os.path.dirname(logpath)
+    os.makedirs(logdir, exist_ok=True)
+
     wwwbase = os.path.join(capth, 'ui_www')
-    ag = VultusCore(cascadePath=capth)
-    # ag.facedetectFrame(imgpath='/Users/navendusinha/Downloads/img002.jpg',
-    #                   wwwbase=capth)
-    #ag.process_frame(imgfile='/Users/navendusinha/Downloads/img002.jpg',
-    #                 statticdir=os.getcwd())
+    logging.basicConfig(filename=logpath, level=logging.DEBUG, format='%(asctime)s %(message)s')
+    handler = logging.StreamHandler(sys.stdout)
+    logging.getLogger().addHandler(handler)
 
-    #ag.process_frame(imgfile='/Users/navendusinha/Downloads/brother-09.jpg',
-    #                 statticdir=os.getcwd())
-
+    ag = VultusCore(cascadePath=capth, msgtopic='camerastats')
     #ag.process_frame(imgfile='/Users/navendusinha/Downloads/akshil-01.jpg',
     #                 statticdir=os.getcwd())
 
