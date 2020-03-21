@@ -1,4 +1,5 @@
 import os, logging, sys, datetime, time
+import argparse
 import math, ssl
 import cherrypy as HttpServelet
 from pymongo import MongoClient
@@ -12,18 +13,13 @@ class VultusBase(object):
     '''
 
     mqttc = None
-    def __init__(self, dbaddress=None, staticdir=None, msgserver=None):
+    def __init__(self, dbaddress=None,  msgserver=None):
         """
         Intialize DB and Messaging client
         :param dbaddress:
         :param staticdir:
         :param msgserver:
         """
-        ##Initialize Static Dir
-        self.staticdir = os.path.join(os.getcwd(), 'ui_www')
-        if staticdir:
-            self.staticdir = staticdir
-        logging.info("Static directory for web-content: %s" % self.staticdir)
 
         ##Initalize MongoDB
         self.dbaddress = '127.0.0.1'
@@ -105,17 +101,43 @@ class VultusBase(object):
 
 
 if __name__ == '__main__':
-    print("hello .. ")
     capth = os.getcwd()
     logpath = os.path.join(os.getcwd(), 'log', 'vultusbase.log')
     logdir = os.path.dirname(logpath)
     os.makedirs(logdir, exist_ok=True)
+    dbaddress = '127.0.0.1:27017'
+    mqttserver= 'mqtt.sinhamobility.com'
 
-    wwwbase = os.path.join(capth, 'ui_www')
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-f", "--logfile", required=False, default=logpath,
+                    help="Directory where application logs shall be stored, defaults to %s" % (logpath))
+
+
+    ap.add_argument("-d", "--database", required=False, default=dbaddress,
+                    help="Database(Mongo) where model information shall be stored %s" % (dbaddress))
+
+    ap.add_argument("-m", "--mqttserver", required=False, default=mqttserver,
+                    help="MQTT broker to subscribe to for fetching information" % (mqttserver))
+
+    # Parse Arguments
+    args = vars(ap.parse_args())
+    if args['logfile']:
+        logpath = os.path.abspath(args['logfile'])
+    else:
+        if not os.path.exists(logdir):
+            print("Log directory does not exist, creating %s" % (logdir))
+            os.makedirs(logdir)
+
+    if args['database']:
+         dbaddress = os.path.abspath(args['database'])
+
+    if args['mqttserver']:
+         mqttserver = os.path.abspath(args['mqttserver'])
+
     logging.basicConfig(filename=logpath, level=logging.DEBUG, format='%(asctime)s %(message)s')
     handler = logging.StreamHandler(sys.stdout)
     logging.getLogger().addHandler(handler)
 
-    ag = VultusBase(staticdir=wwwbase)
+    ag = VultusBase(dbaddress=dbaddress, msgserver=mqttserver)
     ag.mqttc.loop_forever()
 
