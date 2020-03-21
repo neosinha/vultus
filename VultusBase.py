@@ -33,7 +33,7 @@ class VultusBase(object):
             self.dbaddress = dbarr[0]
             if len(dbarr[1]):
                 self.dbport = int(dbarr[1])
-        logging.info('Connecting to MongoDB {}: {}'.format(self.dbaddress,
+        logging.info('Connecting to MongoDB {}:{}'.format(self.dbaddress,
                                                            self.dbport))
         client = MongoClient(self.dbaddress, self.dbport)
         self.dbase = client['vultus']
@@ -86,7 +86,7 @@ class VultusBase(object):
         """
         logging.info('MQTT RCVD: {}'.format(msg.payload))
         dbobj = json.loads(msg.payload)
-        upd = self.dbcol.update(dbobj, dbobj, upsert=True)
+        self.dbcol.update(dbobj, dbobj, upsert=True)
 
     def on_disconnect(self, client, userdata, message):
         print("Disconnected, trying to re-intiallize")
@@ -106,7 +106,7 @@ class VultusBase(object):
 if __name__ == '__main__':
     print("hello .. ")
     capth = os.getcwd()
-    logpath = os.path.join(os.getcwd(), 'log', 'vultuscore.log')
+    logpath = os.path.join(os.getcwd(), 'log', 'vultusbase.log')
     logdir = os.path.dirname(logpath)
     os.makedirs(logdir, exist_ok=True)
 
