@@ -1,3 +1,4 @@
+
 import cv2
 import os, logging, sys, datetime, time
 import math, ssl
@@ -59,13 +60,15 @@ class VultusBase(object):
         self.mqttc = mqtt.Client(clientid, clean_session=True,
                                  transport="tcp",
                                  protocol=mqtt.MQTTv311)
-        print("== {}".format(self.mqttc) )
+
         self.mqttc.username_pw_set("apiuser", "millionchamps")
         self.mqttc.on_connect = self.on_connect
         self.mqttc.on_message = self.on_message
         self.mqttc.on_disconnect = self.on_disconnect
+        self.mqttc.on_subscribe = self.on_subscribe
         # TLS port is 8883, regular TCP is 1883
         self.mqttc.connect("mqtt.sinhamobility.com", 1883, 60)
+
 
     # MQTT
     def on_connect(self, client, userdata, flags, rc):
@@ -73,11 +76,11 @@ class VultusBase(object):
         MQTT callback for on_connect
         :return:
         """
+        self.mqttc.subscribe("camerastats", qos=0)
         logging.info('Connection to MQTT Broker established with status {}'.format(rc))
-        self.mqttc.subscribe("vultus/camerastats")
 
     # MQTT
-    def on_message(self, client, userdata, msg):
+    def on_message(self, client, userdata, message):
         """
         MQTT on_message callback
           :param client:
@@ -85,16 +88,23 @@ class VultusBase(object):
           :param msg:
           :return:
         """
-        logging.info('MQTT RCVD: {}'.format(msg.text))
-        dbobj = json.loads(msg.text)
-
-
+        print("RXvd: {}/\n\t {}".format(message.topic, message.payload))
+        logging.info('MQTT RCVD: {}'.format(message.payload))
 
     def on_disconnect(self, client, userdata, message):
         print("Disconnected, trying to re-intiallize")
         self.mqttc.disconnect()
-        self.initmqtt()
 
+
+    def on_subscribe(self, client, obj, mid, granted_qos):
+        """
+        :param client:
+        :param obj:
+        :param mid:
+        :param granted_qos:
+        :return:
+        """
+        print("Subscribed")
 
     def epoch(self):
         """
@@ -118,5 +128,6 @@ if __name__ == '__main__':
     logging.getLogger().addHandler(handler)
 
     ag = VultusBase(staticdir=wwwbase)
+    print("Going to loop")
     ag.mqttc.loop_forever()
 
