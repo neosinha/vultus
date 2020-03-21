@@ -84,8 +84,8 @@ class VultusBase(object):
           :param msg:
           :return:
         """
-        logging.info('MQTT RCVD: {}'.format(msg.payload))
         dbobj = json.loads(msg.payload)
+        logging.info("Payload: {}".format(dbobj))
         self.dbcol.update(dbobj, dbobj, upsert=True)
 
     def on_disconnect(self, client, userdata, message):
