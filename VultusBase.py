@@ -117,7 +117,7 @@ if __name__ == '__main__':
                     help="Database(Mongo) where model information shall be stored %s" % (dbaddress))
 
     ap.add_argument("-m", "--mqttserver", required=False, default=mqttserver,
-                    help="MQTT broker to subscribe to for fetching information" % (mqttserver))
+                    help="MQTT broker to subscribe to for fetching information %s" % (mqttserver))
 
     # Parse Arguments
     args = vars(ap.parse_args())
