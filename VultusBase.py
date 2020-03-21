@@ -1,4 +1,3 @@
-import cv2
 import os, logging, sys, datetime, time
 import math, ssl
 import cherrypy as HttpServelet
