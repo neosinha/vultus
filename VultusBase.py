@@ -73,7 +73,7 @@ class VultusBase(object):
         :return:
         """
         logging.info('Connection to MQTT Broker established with status {}'.format(rc))
-        self.mqttc.subscribe("vultus/camerastats")
+        self.mqttc.subscribe("camerastats")
 
     # MQTT
     def on_message(self, client, userdata, msg):
@@ -87,10 +87,6 @@ class VultusBase(object):
         logging.info('MQTT RCVD: {}'.format(msg.payload))
         dbobj = json.loads(msg.payload)
         upd = self.dbcol.update(dbobj, dbobj, upsert=True)
-
-
-
-
 
     def on_disconnect(self, client, userdata, message):
         print("Disconnected, trying to re-intiallize")
