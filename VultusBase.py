@@ -87,8 +87,11 @@ class VultusBase(object):
 
         dbobj = json.loads(msg.payload)
 
-        self.dbcol.update(dbobj, dbobj, upsert=True)
-        logging.info("DBObj: {}".format(dbobj))
+        upd = self.dbcol.replace_one(dbobj, dbobj, upsert=True)
+        logging.info("Inserting stats fom camera {}, located at {}/{}/{}".format(dbobj['cameraid'],
+                                                                              dbobj['location']['city'],
+                                                                              dbobj['location']['postal'],
+                                                                              dbobj['location']['ip']) )
 
 
     def on_disconnect(self, client, userdata, message):
