@@ -35,6 +35,7 @@ class VultusBase(object):
         self.dbase = client['vultus']
         self.dbcol = self.dbase['agender']
 
+
         # Intialize MQTT
         self.mqttserver = 'mqtt.sinhamobility.com'
         if msgserver:
@@ -64,7 +65,7 @@ class VultusBase(object):
         self.mqttc.on_message = self.on_message
         self.mqttc.on_disconnect = self.on_disconnect
         # TLS port is 8883, regular TCP is 1883
-        self.mqttc.connect("mqtt.sinhamobility.com", 1883, 60)
+        self.mqttc.connect("mqtt.sinhamobility.com", 1883, 6000)
 
     # MQTT
     def on_connect(self, client, userdata, flags, rc):
