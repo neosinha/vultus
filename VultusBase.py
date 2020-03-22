@@ -13,7 +13,7 @@ class VultusBase(object):
     '''
 
     mqttc = None
-    def __init__(self, dbaddress=None,  msgserver=None):
+    def __init__(self, dbaddress=None,  msgserver=None, msgtopic=None):
         """
         Intialize DB and Messaging client
         :param dbaddress:
@@ -39,6 +39,10 @@ class VultusBase(object):
         self.mqttserver = 'mqtt.sinhamobility.com'
         if msgserver:
             self.mqttserver = msgserver
+
+        self.msgtopic = 'camerastats'
+        if msgtopic:
+            self.msgtopic = msgtopic
 
         self.initmqtt()
 
@@ -69,7 +73,7 @@ class VultusBase(object):
         :return:
         """
         logging.info('Connection to MQTT Broker established with status {}'.format(rc))
-        self.mqttc.subscribe("camerastats")
+        self.mqttc.subscribe(self.msgtopic)
 
     # MQTT
     def on_message(self, client, userdata, msg):
@@ -81,7 +85,6 @@ class VultusBase(object):
           :return:
         """
         dbobj = json.loads(msg.payload)
-        logging.info("Payload: {}".format(dbobj))
         upd = self.dbcol.update(dbobj, dbobj, upsert=True)
         logging.info("Update: {}".format(upd))
 
