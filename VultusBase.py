@@ -87,7 +87,7 @@ class VultusBase(object):
 
         dbobj = json.loads(msg.payload)
 
-        self.dbcol.insert_one(dbobj)
+        self.dbcol.update(dbobj, dbobj, upsert=True)
         logging.info("DBObj: {}".format(dbobj))
 
 
