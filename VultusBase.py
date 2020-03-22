@@ -31,9 +31,10 @@ class VultusBase(object):
                 self.dbport = int(dbarr[1])
         logging.info('Connecting to MongoDB {}:{}'.format(self.dbaddress,
                                                            self.dbport))
-        client = MongoClient(self.dbaddress, self.dbport)
+        client = MongoClient(self.dbaddress, 27017)
         self.dbase = client['vultus']
         self.dbcol = self.dbase['agender']
+
 
         # Intialize MQTT
         self.mqttserver = 'mqtt.sinhamobility.com'
@@ -64,7 +65,7 @@ class VultusBase(object):
         self.mqttc.on_message = self.on_message
         self.mqttc.on_disconnect = self.on_disconnect
         # TLS port is 8883, regular TCP is 1883
-        self.mqttc.connect("mqtt.sinhamobility.com", 1883, 60)
+        self.mqttc.connect("mqtt.sinhamobility.com", 1883, 6000)
 
     # MQTT
     def on_connect(self, client, userdata, flags, rc):
@@ -84,8 +85,14 @@ class VultusBase(object):
           :param msg:
           :return:
         """
+
         dbobj = json.loads(msg.payload)
-        self.dbcol.insert_one(dbobj)
+
+        upd = self.dbcol.replace_one(dbobj, dbobj, upsert=True)
+        logging.info("Inserting stats fom camera {}, located at {}/{}/{}".format(dbobj['cameraid'],
+                                                                              dbobj['location']['city'],
+                                                                              dbobj['location']['postal'],
+                                                                              dbobj['location']['ip']) )
 
 
 
@@ -109,6 +116,7 @@ if __name__ == '__main__':
     logpath = os.path.join(os.getcwd(), 'log', 'vultusbase.log')
     logdir = os.path.dirname(logpath)
     os.makedirs(logdir, exist_ok=True)
+
     dbaddress = '127.0.0.1:27017'
     mqttserver= 'mqtt.sinhamobility.com'
 
