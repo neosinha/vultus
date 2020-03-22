@@ -46,6 +46,11 @@ class VultusAPI(object):
                 self.dbport = int(dbhostarr[1])
         logging.info("MongoDB Client: {} : {}".format(self.dbhost, self.dbport))
         client = MongoClient(self.dbhost, self.dbport)
+        self.dbase = client['vultus']
+        self.dbcol = self.dbase['agender']
+        cameras = self.dbcol.distinct('cameraid')
+        for cam in cameras:
+            logging.info("CameraId: {}".format(cam))
 
 
 
@@ -55,23 +60,27 @@ class VultusAPI(object):
         Sources the index file
         :return: raw index file
         """
-
         return open(os.path.join(self.staticdir, "index.html"))
 
-
     @HttpServer.expose
-    def framestats(self, cameraid, location, videoid, framenum, stats):
+    def getcamerastats(self, cameraid=None):
         """
-        Recieves framestats
-
         :param cameraid:
         :param location:
-        :param videoid:
-        :param framenum:
-        :param stats:
         :return:
         """
-        frameobj = {'cameraid' : cameraid, 'location' : location }
+        camid = str(cameraid).strip()
+        logging.info("Querying cameraid {}".format(cameraid))
+        query = {'cameraid': camid }
+        stats = self.dbcol.find(query, {'_id': 0})
+        camstats = []
+        for stat in stats:
+            logging.info("Camera({}) : {}".format(cameraid, stat))
+            camstats.append(stat)
+
+        return json.dumps(camstats)
+
+
 
 
     @HttpServer.expose
@@ -145,8 +154,8 @@ if __name__ == '__main__':
     ap.add_argument("-s", "--static", required=False, default=www,
                 help="Static directory where WWW files are present")
 
-    ap.add_argument("-c", "--cascpath", required=False, default=cascPath,
-                    help="Directory where cascase files are found, defaults to %s" % (cascPath))
+    ap.add_argument("-d", "--dbaddress", required=False, default=dbip,
+                    help="Database (MongoDB) IP address, defaults to %s" % (dbip))
 
     ap.add_argument("-f", "--logfile", required=False, default=logpath,
                     help="Directory where application logs shall be stored, defaults to %s" % (logpath) )
@@ -169,8 +178,8 @@ if __name__ == '__main__':
             print("Log directory does not exist, creating %s" % (logdir))
             os.makedirs(logdir)
 
-    if args['cascpath']:
-        cascPath = args['cascpath']
+    if args['dbaddress']:
+        dbip = args['dbaddress']
 
     logging.basicConfig(filename=logpath, level=logging.DEBUG, format='%(asctime)s %(message)s')
     handler = logging.StreamHandler(sys.stdout)
@@ -190,7 +199,7 @@ if __name__ == '__main__':
         'tools.staticdir.dir': staticwww}
             }
 
-    HttpServer.quickstart(VultusAPI(staticdir=staticwww),
+    HttpServer.quickstart(VultusAPI(staticdir=staticwww, dbhost=dbip),
                             '/', conf)
 
 

@@ -429,7 +429,7 @@ if __name__ == '__main__':
     st = ag.epoch()
     loc= ag.getLocation()
     print("Location: {}".format(loc))
-    ag.analyze_livevideo(cameraid='001', location=ag.getLocation())
+    ag.analyze_livevideo(cameraid='003', location=ag.getLocation())
 
     #ag.analyze_livevideo(droprate=3, cameraid='000', location=)
     # vstats = ag.analyze_video_file(vidfile='/Users/navendusinha/Downloads/IMG_6415.mp4')
