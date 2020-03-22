@@ -72,7 +72,9 @@ class VultusAPI(object):
         camid = str(cameraid).strip()
         logging.info("Querying cameraid {}".format(cameraid))
         query = {'cameraid': camid }
-        stats = self.dbcol.find(query, {'_id': 0})
+        stats = self.dbcol.find(query, {'_id': 0, 'location': 0,
+                                        'agender.left' : 0, 'agender.right': 0,
+                                        'agender.top': 0, 'agender.bottom': 0})
         camstats = []
         for stat in stats:
             logging.info("Camera({}) : {}".format(cameraid, stat))
