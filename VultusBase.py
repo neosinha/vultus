@@ -86,6 +86,7 @@ class VultusBase(object):
         """
         dbobj = json.loads(msg.payload)
         self.dbcol.insert_one(dbobj)
+        logging.info("DBObj: {}".format(dbobj))
 
 
     def on_disconnect(self, client, userdata, message):
