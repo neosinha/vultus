@@ -132,10 +132,10 @@ if __name__ == '__main__':
             os.makedirs(logdir)
 
     if args['database']:
-         dbaddress = os.path.abspath(args['database'])
+         dbaddress = args['database']
 
     if args['mqttserver']:
-         mqttserver = os.path.abspath(args['mqttserver'])
+         mqttserver = args['mqttserver']
 
     logging.basicConfig(filename=logpath, level=logging.DEBUG, format='%(asctime)s %(message)s')
     handler = logging.StreamHandler(sys.stdout)
