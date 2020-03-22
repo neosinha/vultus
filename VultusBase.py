@@ -31,7 +31,7 @@ class VultusBase(object):
                 self.dbport = int(dbarr[1])
         logging.info('Connecting to MongoDB {}:{}'.format(self.dbaddress,
                                                            self.dbport))
-        client = MongoClient(self.dbaddress, self.dbport)
+        client = MongoClient(self.dbaddress, 27017)
         self.dbase = client['vultus']
         self.dbcol = self.dbase['agender']
 
@@ -84,7 +84,9 @@ class VultusBase(object):
           :param msg:
           :return:
         """
+
         dbobj = json.loads(msg.payload)
+
         self.dbcol.insert_one(dbobj)
         logging.info("DBObj: {}".format(dbobj))
 
@@ -109,6 +111,7 @@ if __name__ == '__main__':
     logpath = os.path.join(os.getcwd(), 'log', 'vultusbase.log')
     logdir = os.path.dirname(logpath)
     os.makedirs(logdir, exist_ok=True)
+
     dbaddress = '127.0.0.1:27017'
     mqttserver= 'mqtt.sinhamobility.com'
 
