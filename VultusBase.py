@@ -63,7 +63,6 @@ class VultusBase(object):
         self.mqttc.on_connect = self.on_connect
         self.mqttc.on_message = self.on_message
         self.mqttc.on_disconnect = self.on_disconnect
-        self.mqttc.on_subscribe = self.on_subscribe
         # TLS port is 8883, regular TCP is 1883
         self.mqttc.connect("mqtt.sinhamobility.com", 1883, 60)
 
