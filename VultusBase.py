@@ -63,6 +63,7 @@ class VultusBase(object):
         self.mqttc.on_connect = self.on_connect
         self.mqttc.on_message = self.on_message
         self.mqttc.on_disconnect = self.on_disconnect
+        self.mqttc.on_subscribe = self.on_subscribe
         # TLS port is 8883, regular TCP is 1883
         self.mqttc.connect("mqtt.sinhamobility.com", 1883, 60)
 
@@ -72,8 +73,8 @@ class VultusBase(object):
         MQTT callback for on_connect
         :return:
         """
-        logging.info('Connection to MQTT Broker established with status {}'.format(rc))
         self.mqttc.subscribe(self.msgtopic)
+        logging.info('Connection to MQTT Broker established with status({})./Topic: {} '.format(rc, self.msgtopic))
 
     # MQTT
     def on_message(self, client, userdata, msg):
@@ -85,7 +86,7 @@ class VultusBase(object):
           :return:
         """
         dbobj = json.loads(msg.payload)
-        upd = self.dbcol.insert_one(dbobj)
+        self.dbcol.insert_one(dbobj)
 
 
     def on_disconnect(self, client, userdata, message):
